@@ -1,0 +1,98 @@
+// ---------- Pines de sensores ----------
+const int sensorIzq = A3;
+const int sensorCen = A1;
+const int sensorDer = A2;  // Asegurate que esté bien conectado físicamente
+
+// ---------- Pines del puente H L298N ----------
+const int IN1 = 8;
+const int IN2 = 9;
+const int IN3 = 10;
+const int IN4 = 11;
+const int ENA = 3;  // Motor izquierdo (PWM)
+const int ENB = 5;  // Motor derecho (PWM)
+
+const int velBase = 170;
+
+void setup() {
+  pinMode(sensorIzq, INPUT);
+  pinMode(sensorCen, INPUT);
+  pinMode(sensorDer, INPUT);
+
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+  pinMode(ENA, OUTPUT);
+  pinMode(ENB, OUTPUT);
+
+  Serial.begin(9600);
+  delay(5000);  // Espera antes de iniciar
+}
+
+void loop() {
+  int izquierda = digitalRead(sensorIzq);
+  int centro    = digitalRead(sensorCen);
+  int derecha   = digitalRead(sensorDer);
+
+  // Verificamos los sensores en el monitor
+  Serial.print("Izq: "); Serial.print(izquierda);
+  Serial.print(" | Cen: "); Serial.print(centro);
+  Serial.print(" | Der: "); Serial.println(derecha);
+
+  // Lógica: seguir blanco, evitar negro
+  if (izquierda == 1 && centro == 1 && derecha == 1) {
+    avanzar();  // Todo blanco, seguimos
+  } 
+  else if (izquierda == 0) {
+    girarDerecha();  // Negro a la izquierda, giramos a la derecha
+  } 
+  else if (derecha == 0) {
+    girarIzquierda();  // Negro a la derecha, giramos a la izquierda
+  } 
+  else if (centro == 0) {
+    detener();  // Negro en el centro, frenamos
+  } 
+  else {
+    avanzar();  // Por defecto, avanzar
+  }
+
+  delay(50);
+}
+
+// ---------- Funciones de movimiento ----------
+
+void avanzar() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+  analogWrite(ENA, velBase);
+  analogWrite(ENB, velBase);
+}
+
+void detener() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+  analogWrite(ENA, 0);
+  analogWrite(ENB, 0);
+}
+
+void girarIzquierda() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+  analogWrite(ENA, velBase);
+  analogWrite(ENB, velBase);
+}
+
+void girarDerecha() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+  analogWrite(ENA, velBase);
+  analogWrite(ENB, velBase);
+}
