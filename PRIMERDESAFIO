@@ -1,0 +1,103 @@
+// ---------- Pines de sensores ----------
+const int sensorIzq = A3;
+const int sensorCen = A1;
+const int sensorDer = A2;
+
+// ---------- Pines del puente H L298N ----------
+const int IN1 = 8;
+const int IN2 = 9;
+const int IN3 = 10;
+const int IN4 = 11;
+const int ENA = 3;  // Motor izquierdo (PWM)
+const int ENB = 5;  // Motor derecho (PWM)
+
+const int velBase = 170;
+
+// ---------- Prototipos de funciones ----------
+void avanzar();
+void detener();
+void girarIzquierda();
+void girarHastaEncontrarLinea();
+
+void setup() {
+  pinMode(sensorIzq, INPUT);
+  pinMode(sensorCen, INPUT);
+  pinMode(sensorDer, INPUT);
+
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+  pinMode(ENA, OUTPUT);
+  pinMode(ENB, OUTPUT);
+
+  Serial.begin(9600);
+  delay(5000);  // Espera antes de iniciar
+}
+
+void loop() {
+  int izquierda = digitalRead(sensorIzq);
+  int centro    = digitalRead(sensorCen);
+  int derecha   = digitalRead(sensorDer);
+
+  int cantidadNegros = (izquierda == 0) + (centro == 0) + (derecha == 0);
+
+  if (cantidadNegros >= 2) {
+    avanzar();
+  } else {
+    detener();
+    delay(200);  // Pausa antes de girar
+    girarHastaEncontrarLinea();
+  }
+
+  delay(50);  // Estabilidad
+}
+
+// ---------- Funciones de movimiento ----------
+
+void avanzar() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+  analogWrite(ENA, velBase);
+  analogWrite(ENB, velBase);
+}
+
+void detener() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+  analogWrite(ENA, 0);
+  analogWrite(ENB, 0);
+}
+
+void girarIzquierda() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+  analogWrite(ENA, velBase);
+  analogWrite(ENB, velBase);
+}
+
+// ---------- Función principal de búsqueda ----------
+void girarHastaEncontrarLinea() {
+  while (true) {
+    int izquierda = digitalRead(sensorIzq);
+    int centro    = digitalRead(sensorCen);
+    int derecha   = digitalRead(sensorDer);
+
+    int cantidadNegros = (izquierda == 0) + (centro == 0) + (derecha == 0);
+
+    if (cantidadNegros >= 2) {
+      avanzar();
+      break;  // Sale del bucle y vuelve al loop
+    } else {
+      girarIzquierda();
+    }
+
+    delay(800);
+  }
+}
